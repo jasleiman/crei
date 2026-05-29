@@ -1,6 +1,6 @@
 .env
 .DS_Store
-application/logs/*
-!application/logs/.gitkeep
+Archivo.zip
+application/logs/
 application/cache/imports/*
 !application/cache/imports/.gitkeep
