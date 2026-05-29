@@ -1,4 +1,6 @@
 .env
+scripts/.env
+scripts/backup.log
 .DS_Store
 Archivo.zip
 application/logs/
