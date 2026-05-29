@@ -69,3 +69,9 @@
         </div>
     </div>
 </div>
+<?php
+if (isset($_SESSION['mensaje'])) {
+	echo '<div class="noty" data-noty-options="' . $_SESSION['mensaje'] . '" aria-hidden="true"></div>';
+	echo '<script>$(document).ready(function () {var options = $.parseJSON($(\'.noty\').attr(\'data-noty-options\'));noty(options);});</script>';
+}
+?>

@@ -279,14 +279,54 @@ class Papelera extends CI_Model {
 	}
 
 	protected function eliminar_obra_social_definitivo($id) {
+		if ($this->cuenta_alumnos_activos_con_obra_social($id) > 0) {
+			return 'Obra social #' . $id . ': tiene alumnos activos asignados.';
+		}
+
 		$this->db->from('alumnos');
 		$this->db->where('id_obras_sociales', (int) $id);
-		if ((int) $this->db->count_all_results() > 0) {
-			return 'Obra social #' . $id . ': aún tiene alumnos vinculados (activos o en papelera).';
+		$this->db->where('habilitado', 0);
+		$alumnos_papelera = (int) $this->db->count_all_results();
+		if ($alumnos_papelera > 0) {
+			$id_reemplazo = $this->id_obra_social_reemplazo($id);
+			if ($id_reemplazo <= 0) {
+				return 'Obra social #' . $id . ': tiene alumnos en papelera y no hay otra obra activa para reasignarlos.';
+			}
+			$this->db->where('id_obras_sociales', (int) $id);
+			$this->db->where('habilitado', 0);
+			$this->db->update('alumnos', array('id_obras_sociales' => $id_reemplazo));
 		}
+
 		$this->db->where('id_obras_sociales', $id);
 		$this->db->delete('obras_sociales');
 		return true;
+	}
+
+	protected function cuenta_alumnos_activos_con_obra_social($id_obras_sociales) {
+		$this->db->from('alumnos');
+		$this->db->where('id_obras_sociales', (int) $id_obras_sociales);
+		$this->db->where('habilitado', 1);
+		return (int) $this->db->count_all_results();
+	}
+
+	/** Obra activa para reasignar alumnos en papelera antes de borrar la obra. */
+	protected function id_obra_social_reemplazo($excluir_id) {
+		$this->db->select('id_obras_sociales, descripcion');
+		$this->db->from('obras_sociales');
+		$this->db->where('habilitado', 1);
+		$this->db->where('id_obras_sociales <>', (int) $excluir_id);
+		$this->db->order_by('descripcion', 'asc');
+		$query = $this->db->get();
+		$fallback = 0;
+		foreach ($query->result() as $row) {
+			if (stripos(trim((string) $row->descripcion), 'PARTICULAR') !== false) {
+				return (int) $row->id_obras_sociales;
+			}
+			if ($fallback <= 0) {
+				$fallback = (int) $row->id_obras_sociales;
+			}
+		}
+		return $fallback;
 	}
 
 	protected function eliminar_plan_definitivo($id, $verificar_papelera = true) {
