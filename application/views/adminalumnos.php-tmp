@@ -1,0 +1,62 @@
+<div class="ch-container">
+    <div class="row">
+
+        <!-- left menu starts -->
+        <div class="col-sm-2 col-lg-2">
+            <div class="sidebar-nav">
+                <div class="nav-canvas">
+                    <div class="nav-sm nav nav-stacked">
+                    </div>
+                    <ul class="nav nav-pills nav-stacked main-menu">
+                        <li class="nav-header"><?php echo $this->lang->line('mensajes_titulo_menus');?></li>
+<?php echo $menu;?>
+</ul>
+                </div>
+            </div>
+        </div>
+        <!--/span-->
+        <!-- left menu ends -->
+
+        <noscript>
+            <div class="alert alert-block col-md-12">
+                <h4 class="alert-heading">Warning!</h4>
+
+                <p>You need to have <a href="http://en.wikipedia.org/wiki/JavaScript" target="_blank">JavaScript</a>
+                    enabled to use this site.</p>
+            </div>
+        </noscript>
+
+        <div id="content" class="col-lg-10 col-sm-10">
+            <!-- content starts -->
+            <div>
+    <ul class="breadcrumb">
+        <li>
+            <a href="#">Inicio</a>
+        </li>
+    </ul>
+</div>
+<div class="ch-container">
+	        <div class="grid_12">
+            <div class="grid_12" id="head">
+                <div class="grid_2" id="head_nombre">Nombre</div>
+                <div class="grid_3" id="head_email">Email</div>
+                <div class="grid_2" id="head_registro">Fecha de registro</div>
+                <div class="grid_2" id="head_eliminar">Eliminar</div>
+                <div class="grid_2" id="head_editar">Editar</div>
+            </div>
+<?php
+foreach ($alumnos as $fila):
+?>
+            <div class="grid_12" id="body">
+                <div class="grid_2" id="nombre<?=$fila->id?>"><?=$fila->nombre?></div>
+                <div class="grid_3" id="email<?=$fila->id?>"><?=$fila->email?></div>
+                <div class="grid_2" id="registro<?=$fila->id?>"><?=$fila->registro?></div>
+                <div class="grid_2" id="eliminar"><input type="button" value="Eliminar" id="<?=$fila->id?>" class="eliminar"></div>
+                <div class="grid_2" id="editar"><input type="button" value="Editar" id="<?=$fila->id?>" class="editar"></div>
+            </div>
+<?php
+endforeach;
+?>
+            <div class="grid_12" id="agregar"><input type="button" value="Añadir" id="<?=$fila->id?>" class="agregar"></div>
+        </div>
+    </div>

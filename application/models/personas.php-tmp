@@ -1,0 +1,70 @@
+<?php
+class Personas extends CI_Model {
+
+	function get($id) {
+		$this->db->select('id_personas as id, nombre');
+		$this->db->from('personas');
+		$this->db->where('id_personas', $id);
+		$this->db->limit(1);
+
+		$query = $this->db->get();
+
+		if ($query->num_rows() == 1) {
+			return $query->result();
+		} else {
+			return false;
+		}
+	}
+
+	function crearPersona($persona) {
+		$id_emails   = 0;
+		$id_personas = 0;
+		if (isset($persona['id_personas'])) {
+			$id_personas = $persona['id_personas'];
+		}
+
+		if ($persona['persona_email'] > '') {
+			$email['descripcion'] = $persona['persona_email'];
+			$id_emails            = $this->emails->crearEmail($email);
+		}
+		$query2 = 'SELECT * FROM ';
+		$query2 .= ' crear_persona('.$id_personas.',\''.$persona['nombres'].'\',\''.$persona['apellidos'].'\','.$persona['id_entidades'].')';
+		//echo $query;
+		$query = $this->db->query($query2);
+		if (!$query) {
+			return false;
+		} else {
+			if ($query->num_rows() == 1) {
+				$resultado = $query->result();
+				foreach ($resultado as $fila) {
+					if ($id_emails > 0) {$this->agregarEmail($fila->id_personas, $id_emails);
+					}
+				}
+
+				return $resultado;
+			} else {
+				return false;
+			}
+		}
+
+	}
+
+	function agregarEmail($id_personas, $id_emails) {
+		$query2 = 'SELECT * FROM  ';
+		$query2 .= ' agregar_email_persona ('.$id_personas.','.$id_emails.')';
+		$query = $this->db->query($query2);
+		if (!$query) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	function obtenerPersonas() {
+		$query = $this->db->GET('personas');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		}
+	}
+}
+?>

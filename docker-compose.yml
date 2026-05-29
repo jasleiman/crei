@@ -1,0 +1,42 @@
+services:
+  web:
+    build: .
+    container_name: crei-web
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      CI_ENV: development
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080/}
+      APP_INDEX_PAGE: ${APP_INDEX_PAGE:-}
+      DB_HOST: mysql
+      DB_USER: ${MYSQL_USER:-crei}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-crei_dev}
+      DB_NAME: ${MYSQL_DATABASE:-crei_integracion}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    container_name: crei-mysql
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-crei_integracion}
+      MYSQL_USER: ${MYSQL_USER:-crei}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-crei_dev}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./bd/crei_integracion.sql:/docker-entrypoint-initdb.d/01-crei_integracion.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+volumes:
+  mysql_data:

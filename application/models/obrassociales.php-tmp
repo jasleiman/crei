@@ -1,0 +1,15 @@
+<?php
+class ObrasSociales extends CI_Model {
+	function __construct() {
+		// Call the Model constructor
+		parent::__construct();
+	}
+
+	function obtenerObrasSociales() {
+		$query = $this->db->GET('obras_sociales');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		}
+	}
+
+}

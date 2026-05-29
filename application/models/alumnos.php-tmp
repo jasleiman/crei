@@ -1,0 +1,59 @@
+<?php
+class Alumnos extends CI_Model {
+	function __construct() {
+		// Call the Model constructor
+		parent::__construct();
+	}
+
+	function obtenerAlumnos() {
+		$query = $this->db->GET('alumnos');
+		if ($query->num_rows() > 0) {
+			return $query->result();
+		}
+	}
+
+	function altaAlumno($nombre, $direccion, $localidad, $partido, $codigo_postal, $provincia, $padre, $telefono,
+		$email, $dni, $diagnostico, $os) {
+		$data = array(
+
+			'nombre'        => $nombre,
+			'direccion'     => $direccion,
+			'localidad'     => $localidad,
+			'partido'       => $partido,
+			'codigo_postal' => $codigo_postal,
+			'provincia'     => $provincia,
+			'padre'         => $padre,
+			'telefono'      => $telefono,
+			'email'         => $email,
+			'dni'           => $dni,
+			'diagnostico'   => $diagnostico,
+			'os'            => $os
+
+		);
+
+		$this->db->INSERT('alumnos', $data);
+	}
+
+	function modificarAlumno($id, $nombre, $direccion, $localidad, $partido, $codigo_postal, $provincia, $padre, $telefono,
+		$email, $dni, $diagnostico, $os) {
+		$data = array(
+
+			'nombre'        => $nombre,
+			'direccion'     => $direccion,
+			'localidad'     => $localidad,
+			'partido'       => $partido,
+			'codigo_postal' => $codigo_postal,
+			'provincia'     => $provincia,
+			'padre'         => $padre,
+			'telefono'      => $telefono,
+			'email'         => $email,
+			'dni'           => $dni,
+			'diagnostico'   => $diagnostico,
+			'os'            => $os
+
+		);
+		$this->db->WHERE('id', $id);
+		$this->db->UPDATE('alumnos', $data);
+	}
+
+}

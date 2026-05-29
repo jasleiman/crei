@@ -1,0 +1,65 @@
+<?php if (!defined('BASEPATH')) {exit('No direct script access allowed');
+}
+
+class Principal extends CI_Controller {
+
+	function __construct() {
+		parent::__construct();
+
+		$this->load->model('menus', '', TRUE);
+		$this->load->model('perfiles', '', TRUE);
+		$this->load->model('actividades', '', TRUE);
+
+	}
+
+	function index() {
+		if ($this->session->userdata('logged_in')) {
+
+			$session_data        = $this->session->userdata('logged_in');
+			$data['username']    = $session_data['username'];
+			$data['menu']        = $this->menus->imprimirMenu($session_data['id']);
+			$id_personas         = $session_data['id'];
+			$data['actividades'] = $this->actividades->obtenerActividades($id_personas);
+			$this->load->helper(array('form'));
+			$this->load->helper('html');
+			$this->load->helper('url');
+			$this->load->helper('language');
+			$this->load->library('user_agent');
+
+			if ($this->agent->browser() == 'Internet Explorer' and $this->agent->version() <= 8) {
+				redirect('/exploradornosoportado');
+			} else {
+				$session_data     = $this->session->userdata('logged_in');
+				$data['username'] = $session_data['username'];
+				$data['menu']     = $this->menus->imprimirMenu($session_data['id']);
+				$this->load->view('header');
+				$this->load->view('menusuperior');
+				$this->load->view('cargahoras', $data);
+				$this->load->view('footer');
+			}
+		} else {
+			//If no session, redirect to login page
+			redirect('login', 'refresh');
+		}
+	}
+
+	function cargaactividades() {
+		$this->load->helper(array('form'));
+		$this->load->helper('html');
+		$this->load->helper('url');
+		$this->load->helper('language');
+		$this->load->library('user_agent');
+
+		if ($this->agent->browser() == 'Internet Explorer' and $this->agent->version() <= 8) {
+			redirect('/exploradornosoportado');
+		} else {
+			$session_data     = $this->session->userdata('logged_in');
+			$data['username'] = $session_data['username'];
+			$data['menu']     = $this->menus->imprimirMenu($session_data['id']);
+			$this->load->view('header');
+			$this->load->view('menusuperior');
+			$this->load->view('cargahoras', $data);
+			$this->load->view('footer');
+		}
+	}
+}

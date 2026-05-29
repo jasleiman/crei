@@ -1,0 +1,5 @@
+.git
+application/logs/*
+!application/logs/.gitkeep
+error_log
+bd/*.sql

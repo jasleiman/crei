@@ -1,0 +1,6 @@
+.env
+.DS_Store
+application/logs/*
+!application/logs/.gitkeep
+application/cache/imports/*
+!application/cache/imports/.gitkeep

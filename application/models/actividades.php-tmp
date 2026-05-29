@@ -1,0 +1,49 @@
+<?php
+class Actividades extends CI_Model {
+	function __construct() {
+		// Call the Model constructor
+		parent::__construct();
+	}
+
+	function obtenerActividades($id_personas) {
+		$query = $this->db->GET('actividades');
+
+		if ($query->num_rows() > 0) {
+			$this->db->WHERE('id_personas', $id_personas);
+			return $query->result();
+		}
+	}
+
+	function cargaActividades($fecha_inicio, $fecha_fin, $id_actividades, $id_alumnos, $id_personas, $id_tipo_actividades, $observaciones) {
+		$data = array(
+
+			'fecha_inicio'        => $fecha_inicio,
+			'fecha_fin'           => $fecha_fin,
+			'id_alumnos'          => $id_alumnos,
+			'id_tipo_actividades' => $id_tipo_actividades,
+			'observaciones'       => $observaciones
+
+		);
+
+		$this->db->INSERT('actividades', $data);
+	}
+
+	function modificarObraSOcial($id_obras_sociales, $descripcion, $telefono, $contacto, $partido, $codigo_postal, $provincia, $direccion, $telefono, $email, $localidad) {
+		$data = array(
+
+			'descripcion'   => $descripcion,
+			'direccion'     => $direccion,
+			'localidad'     => $localidad,
+			'partido'       => $partido,
+			'codigo_postal' => $codigo_postal,
+			'provincia'     => $provincia,
+			'telefono'      => $telefono,
+			'contacto'      => $contacto,
+			'email'         => $email
+
+		);
+		$this->db->WHERE('id_obras_sociales', $id_obras_sociales);
+		$this->db->UPDATE('obras_sociales', $data);
+	}
+
+}

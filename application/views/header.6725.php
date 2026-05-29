@@ -1,0 +1,81 @@
+<html>
+<head>
+	<title><?php echo $this->lang->line('profiler_empresa'); ?></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="author" content="Setiar">
+	<?php $base_url = base_url(); ?>
+	<script type="text/javascript">
+    root = "<?php echo $base_url; ?>";
+    </script>
+    <!-- The styles -->
+    <link href="<?php echo base_url(); ?>static/charisma/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?php echo base_url(); ?>static/charisma/css/charisma-app.css" rel="stylesheet">
+    <link href='<?php echo base_url(); ?>static/charisma/bower_components/chosen/chosen.min.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/bower_components/colorbox/example3/colorbox.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/bower_components/responsive-tables/responsive-tables.css' rel='stylesheet'>
+    <!--<link href='<?php echo base_url(); ?>static/charisma/bower_components/datepicker/css/datepicker.css' rel='stylesheet'>-->
+    <link href='<?php echo base_url(); ?>static/charisma/bower_components/bootstrap-tour/build/css/bootstrap-tour.min.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/css/jquery.noty.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/css/noty_theme_default.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/css/elfinder.min.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/css/elfinder.theme.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/css/jquery.iphone.toggle.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/css/uploadify.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/css/animate.min.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/css/fuentes.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/charisma/css/union.css' rel='stylesheet'>
+    <link href='<?php echo base_url(); ?>static/crei/css/timeline.css' rel='stylesheet'>
+
+    <!-- jQuery -->
+    <script src="<?php echo base_url(); ?>static/charisma/bower_components/jquery/jquery.js"></script>
+    <script src="<?php echo base_url(); ?>static/crei/js/jquery.validate.min.js"></script>
+<script src="<?php echo base_url(); ?>static/crei/js/localization/messages_es_AR.min.js"></script>
+
+    <!-- The HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- The fav icon -->
+    
+	<script>
+		$.validator.addMethod("time24", function(value, element) {
+		    if (!/^\d{2}:\d{2}$/.test(value)) return false;
+		    var parts = value.split(':');
+		    if (parts[0] > 23 || parts[1] > 59) return false;
+		    return true;
+			}, "Hora inválida.");
+		jQuery.validator.addMethod(
+	    "dateES",
+	    function(value, element) {
+	        var check = true;
+	        var re = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+	        if( re.test(value)){
+	            var adata = value.split('/');
+	            var mm = parseInt(adata[1],10);
+	            var dd = parseInt(adata[0],10);
+	            var yyyy = parseInt(adata[2],10);
+	            var xdata = new Date(yyyy,mm-1,dd);
+	            var now = new Date();
+	            var past = new Date();
+	            past.setMonth(past.getMonth(), 1);
+	            past.setHours(0,0,0,0);
+	            if ( ( xdata.getFullYear() == yyyy ) && ( xdata.getMonth () == mm-1) && ( xdata.getDate() == dd ) && (xdata <= now) && (xdata >= past) )
+	            {    
+	                   check = true;
+	            }
+	            else
+	                check = true;
+	        } else
+	            check = true;
+	        return this.optional(element) || check;
+	    },
+	    "Por favor ingrese una fecha válida. Debe estar dentro del mes en curso"
+);
+	</script>
+</head>
+
+<body>
+	

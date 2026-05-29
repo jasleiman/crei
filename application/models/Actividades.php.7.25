@@ -1,0 +1,373 @@
+<?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+class Actividades extends CI_Model {
+	function __construct() {
+		// Call the Model constructor
+		parent::__construct();
+	}
+
+	function obtenerActividades($id_personas = 0) {
+		$query = $this -> db -> GET('actividades');
+
+		if ($query -> num_rows() > 0) {
+			$this -> db -> WHERE('id_personas', $id_personas);
+			$response = $query -> result();
+                        return $response;
+		}
+	}
+
+	function getActividadDuplicada ($datos) {
+		//se fija si ya hay cargada una actividad repetida
+		$this -> load -> model('Datos', 'datos');
+		$fecha_inicio = $this -> datos -> fechaphp2pg($datos['fecha']) . ' ' . $datos['hora_inicio'];
+		$fecha_fin = $this -> datos -> fechaphp2pg($datos['fecha']) . ' ' . $datos['hora_fin'];
+		$data = array('fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin, 'id_alumnos' => $datos['id_alumnos'], 'id_tipo_actividades' => $datos['id_tipo_actividades'], 'observaciones' => $datos['observaciones'], 'id_personas' => $datos['id_personas']);
+		$this -> db -> reset_query();
+		$this -> db -> select ('id_actividades');
+		$this -> db -> from ('actividades');
+		$this -> db -> WHERE('actividades.fecha_inicio =', $fecha_inicio);
+		$this -> db -> WHERE('actividades.fecha_fin =', $fecha_fin);
+		$this -> db -> WHERE('actividades.habilitado', '1');
+		$this -> db -> WHERE('actividades.id_alumnos', $datos['id_alumnos']);
+		$this -> db -> WHERE('actividades.id_personas', $datos['id_personas']);
+		$query = $this -> db -> get();
+		if ($query -> num_rows() > 0) {
+				return true;
+		}
+		else return false;
+	}
+	function cargaActividades($datos) {
+		$this -> load -> model('Datos', 'datos');
+		$fecha_inicio = $this -> datos -> fechaphp2pg($datos['fecha']) . ' ' . $datos['hora_inicio'];
+		$fecha_fin = $this -> datos -> fechaphp2pg($datos['fecha']) . ' ' . $datos['hora_fin'];
+		$data = array('fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin, 'id_alumnos' => $datos['id_alumnos'], 'id_tipo_actividades' => $datos['id_tipo_actividades'], 'observaciones' => $datos['observaciones'], 'id_personas' => $datos['id_personas']);
+		$estaCargado=$this->getActividadDuplicada($datos);
+                $session_data = $this->session->userdata('logged_in');
+		if ($estaCargado == false || (int)$datos['id_actividades'] > 0) {
+			if (isset($datos['id_actividades'])) {
+				if ($datos['id_actividades'] <> '') {
+					$this -> db -> WHERE('id_actividades', $datos['id_actividades']);
+					$this -> db -> UPDATE('actividades', $data);
+					return true;
+				}
+				else {
+					$session_data = $this -> session -> userdata('logged_in');
+					$data['id_personas_carga']=$session_data['id_personas'];
+					$data['hora_carga']=date('Y-m-d H:i:s');
+					$this -> db -> INSERT('actividades', $data);
+					return true;
+				}
+
+			}
+			else
+				{
+					$session_data = $this -> session -> userdata('logged_in');
+					$data['id_personas_carga']=$session_data['id_personas'];
+					$data['hora_carga']=date('Y-m-d H:i:s');
+					$this -> db -> INSERT('actividades', $data);
+					return true;
+				}
+
+		}
+		else return false;
+
+	}
+
+	function getActividades($mes, $anio,$servicio='PRIMARIO') {
+		$this -> load -> model('Datos', 'datos');
+		$this -> load -> model('Planes', 'planes');
+		$this -> load -> model('Personas', 'personas');
+		$session_data = $this -> session -> userdata('logged_in');
+		$id_profesionales = $session_data['id_profesionales'];
+		$id = $session_data['id_personas'];
+		$esta_persona = $this -> personas -> get($id);
+
+		if ($session_data['id_profesionales'] == 2) {
+			$hijos = $id;
+		} else {
+			$hijos = $this -> datos -> getChildrenAlternativo('personas', $id);
+			//log_message('info', 'hijos='.implode($hijos));
+			if (sizeof($hijos) ==1 and $id_profesionales <> 2)
+				$hijos = $this -> datos -> getChildrenAlternativo('personas', $esta_persona[0] -> id_padre);
+		}
+
+		$fecha_inicio = $anio . '-' . $mes . '-' . '1';
+		$fecha_fin = date('Y-m-t', strtotime($fecha_inicio));
+
+		$this -> db -> reset_query();
+		$this -> db -> WHERE('actividades.fecha_inicio >=', $fecha_inicio);
+		$this -> db -> WHERE('actividades.fecha_fin <=', $fecha_fin . ' 23:59:59');
+		$this -> db -> WHERE('actividades.habilitado', '1');
+		$this -> db -> WHERE('alumnos.servicio', $servicio);
+                
+                if($session_data['id_perfiles'] === '4'){
+                    unset($hijos);
+                }
+                
+		if ($session_data['id_perfiles'] <> 1 and $session_data['id_perfiles'] <> 3)
+		$this -> db -> where_in('alumnos.id_personas', $hijos);
+		/*if ($esta_persona[0]->id_profesionales==1)
+		$this->db-> where ('alumnos.id_coordinador',$esta_persona[0]->id_personas);*/
+		$this -> db -> select('actividades.id_alumnos,alumnos.nombre,sec_to_time(sum(TIME_TO_SEC(timediff(actividades.fecha_fin, actividades.fecha_inicio)))) as horas,\'0\' as planificadas,\'0:0\' as diferencia', false);
+		$this -> db -> from('actividades');
+		$this -> db -> join('alumnos', 'alumnos.id_alumnos=actividades.id_alumnos');
+
+		$this -> db -> group_by('alumnos.nombre,planificadas');
+
+		$query = $this -> db -> get();
+		log_message('info', $this->db->last_query());
+		//log_message('info', $this->db->last_query());
+		if ($query -> num_rows() > 0) {
+			$resultado = $query -> result();
+			foreach ($resultado as $row) {
+				$this -> db -> reset_query();
+				$this -> db -> WHERE('planes.habilitado', 1);
+				$this -> db -> WHERE('planes.id_alumnos', $row -> id_alumnos);
+				$this -> db -> select('planes.id_planes,planes.id_alumnos as id_alumnos,\'0\' as horastotales');
+				$this -> db -> from('planes');
+
+				$query = $this -> db -> get();
+				log_message('info', $this->db->last_query());
+				$resultadoplan = $query -> result();
+				//echo $this->db->last_query();
+				foreach ($resultadoplan as $rowplan) {
+
+					$row -> planificadas = $this -> planes -> calcularHoras($rowplan -> id_planes, $mes, $anio);
+				}
+				$row -> diferencia = $this -> datos -> restarHoras($row -> planificadas, $row -> horas);
+			}
+			return $resultado;
+		}
+	}
+
+	function getDetalle($id=0, $mes, $anio,$id_personas=0,$esarray=false,$servicio='EP') {
+
+		$this -> load -> model('Datos', 'datos');
+
+		$this -> db -> reset_query();
+		if ($id > 0)
+			$this -> db -> WHERE('actividades.id_alumnos', $id);
+		if ($id_personas > 0)
+			$this -> db -> WHERE('actividades.id_personas', $id_personas);
+		$this -> db -> WHERE('month(fecha_inicio)', $mes);
+		$this -> db -> WHERE('year(fecha_inicio)', $anio);
+		$this -> db -> WHERE('alumnos.servicio', $servicio);
+		$this -> db -> WHERE('actividades.habilitado', '1');
+		$this -> db -> select('actividades.id_alumnos,tipo_actividades.descripcion as tipo_actividades,upper(alumnos.nombre) as alumno,actividades.fecha_inicio,sec_to_time(TIME_TO_SEC(actividades.fecha_fin) - TIME_TO_SEC(actividades.fecha_inicio)) as horas,concat(actividades.id_personas,"-",upper(personas.nombre)) as persona,actividades.observaciones,actividades.fecha_fin', false);
+		$this -> db -> from('actividades');
+		$this -> db -> join('alumnos', 'alumnos.id_alumnos=actividades.id_alumnos');
+		$this -> db -> join('tipo_actividades', 'tipo_actividades.id_tipo_actividades=actividades.id_tipo_actividades');
+		$this -> db -> join('personas', 'personas.id_personas=actividades.id_personas');
+		$this->db->order_by('fecha_inicio');
+		$query = $this -> db -> get();
+		//echo $this->db->last_query();
+		if ($query -> num_rows() > 0) {
+			if ($esarray)
+			$resultado = $query -> result_array();
+			else
+			$resultado = $query -> result();
+
+			return $resultado;
+		}
+
+	}
+
+	function getTotales($id=0, $mes, $anio,$id_personas=0,$esarray=false,$servicio='EP') {
+		$this -> load -> model('Datos', 'datos');
+
+		$this -> db -> reset_query();
+		if ($id > 0)
+			$this -> db -> WHERE('actividades.id_alumnos', $id);
+		if ($id_personas > 0)
+			$this -> db -> WHERE('actividades.id_personas', $id_personas);
+		$this -> db -> WHERE('month(fecha_inicio)', $mes);
+		$this -> db -> WHERE('year(fecha_inicio)', $anio);
+		$this -> db -> WHERE('alumnos.servicio', $servicio);
+		$this -> db -> WHERE('actividades.habilitado', '1');
+		$this -> db -> select('actividades.id_personas,actividades.id_alumnos, alumnos.nombre AS alumno, alumnos.servicio, sec_to_time( sum( TIME_TO_SEC( actividades.fecha_fin ) - TIME_TO_SEC( actividades.fecha_inicio ) ) ) AS horas, actividades.id_tipo_actividades,clases_profesionales.descripcion,clases_profesionales.id_clases_profesionales,profesionales.id_profesionales,profesionales.descripcion as profesionales', false);
+		$this -> db -> from('actividades');
+		$this -> db -> join('alumnos', 'alumnos.id_alumnos=actividades.id_alumnos','inner');
+		$this -> db -> join('tipo_actividades', 'tipo_actividades.id_tipo_actividades=actividades.id_tipo_actividades','inner');
+		$this -> db -> join('personas', 'personas.id_personas=actividades.id_personas','inner');
+		$this -> db -> join('profesionales', 'personas.id_profesionales=profesionales.id_profesionales','inner');
+		$this -> db -> join('clases_profesionales', 'clases_profesionales.id_clases_profesionales=profesionales.id_clases_profesionales','inner');
+
+		$this -> db -> group_by('actividades.id_alumnos,actividades.id_tipo_actividades,clases_profesionales.id_clases_profesionales,profesionales.id_profesionales');
+		$this->db->order_by('alumnos.nombre asc');
+		$query = $this -> db -> get();
+		//log_message('info',$this->db->last_query());
+		if ($query -> num_rows() > 0) {
+			if ($esarray)
+			$resultado = $query -> result_array();
+			else
+			$resultado = $query -> result();
+
+			return $resultado;
+		}
+
+	}
+
+	function getActividadesPorPersona($mes,$anio,$id_personas=0,$esarray=false) {
+		$this -> load -> model('Datos', 'datos');
+		$this -> load -> model('Planes', 'planes');
+		$this -> load -> model('Personas', 'personas');
+		$fecha_inicio = $anio . '-' . $mes . '-' . '1';
+		$fecha_fin = date('Y-m-t', strtotime($fecha_inicio));
+		$fecha_inicio = $fecha_inicio .' 00:00:00';
+		$fecha_fin = $fecha_fin.' 23:59:59';
+		$this -> db -> reset_query();
+		$session_data = $this -> session -> userdata('logged_in');
+		$id = $session_data['id_personas'];
+		$id_profesionales=$session_data['id_profesionales'];
+		$esta_persona = $this -> personas -> get($id);
+		if ($session_data['id_profesionales'] == 2) {
+			$hijos = $id;
+		} else {
+			$hijos = $this -> datos -> getChildrenAlternativo('personas', $id);
+			//var_dump($hijos);
+			if (sizeof($hijos) == 1 and $id_profesionales <> 2)
+				$hijos = $this -> datos -> getChildrenAlternativo('personas', $esta_persona[0] -> id_padre);
+		}
+		$permitido='(';
+		if (is_array($hijos)) {
+			foreach ($hijos as $hijo) {
+				$permitido.=$hijo.',';
+			}
+			$permitido=trim($permitido,',');
+			$permitido.=')';
+		}
+		else {$permitido='('.$hijos.')';}
+		$sql = "SELECT id_personas,nombre,sec_to_time(sum(TIME_TO_SEC(timediff(fecha_fin, fecha_inicio)))) as horas FROM ";
+		$sql .= "(SELECT actividades.id_personas,personas.nombre,fecha_inicio,fecha_fin FROM actividades actividades INNER JOIN personas personas on personas.id_personas=actividades.id_personas ";
+		$sql .= "WHERE actividades.habilitado=1 AND fecha_inicio >= '".$fecha_inicio."' AND fecha_fin <= '".$fecha_fin."' ";
+        if ($session_data['id_perfiles'] <> 1 and $session_data['id_perfiles'] <> 3 )
+			$sql .= " AND personas.id_personas IN ".$permitido;
+		$sql .= " GROUP BY id_personas,nombre,fecha_inicio,fecha_fin) AS t1";
+		$sql .= " GROUP BY id_personas,nombre";
+		$sql .= " ORDER BY nombre";
+		//echo $sql;
+		$query = $this -> db -> query($sql);
+
+		if ($query -> num_rows() > 0) {
+			if ($esarray)
+				$resultado = $query -> result_array();
+			else
+				$resultado = $query -> result();
+
+			return $resultado;
+		}
+		else return false;
+
+	}
+
+	function getDetallePersona($mes, $anio,$id_personas=0,$esarray=false) {
+
+		$this -> load -> model('Datos', 'datos');
+		$fecha_inicio = $anio . '-' . $mes . '-' . '1';
+		$fecha_fin = date('Y-m-t', strtotime($fecha_inicio));
+		$fecha_inicio = $fecha_inicio .' 00:00:00';
+		$fecha_fin = $fecha_fin.' 23:59:59';
+		$this -> db -> reset_query();
+
+		$sql = "SELECT actividades.id_personas,UPPER(personas.nombre) as persona,UPPER(alumnos.nombre) as alumno,fecha_inicio,fecha_fin,tipo_actividades.descripcion as tipo_actividades,actividades.observaciones FROM actividades actividades INNER JOIN personas personas on personas.id_personas=actividades.id_personas ";
+		$sql .= " INNER JOIN tipo_actividades on tipo_actividades.id_tipo_actividades=actividades.id_tipo_actividades";
+		$sql .= " INNER JOIN alumnos on alumnos.id_alumnos=actividades.id_alumnos";
+		$sql .= " WHERE actividades.habilitado=1 AND fecha_inicio >= '".$fecha_inicio."' AND fecha_fin <= '".$fecha_fin."' ";
+		if ($id_personas > 0)
+			$sql .= " AND actividades.id_personas=".$id_personas;
+
+
+		$sql .= " ORDER BY fecha_inicio, personas.nombre, alumnos.nombre";
+
+		$query = $this -> db -> query($sql);
+		//echo $this->db->last_query();
+		if ($query -> num_rows() > 0) {
+			if ($esarray)
+			$resultado = $query -> result_array();
+			else
+			$resultado = $query -> result();
+
+			return $resultado;
+		}
+
+	}
+
+	function exportarExcelDetalle($datos,$guarda='no') {
+		       //load our new PHPExcel library
+      $myExcel=new Spreadsheet();
+        //activate worksheet number 1
+
+
+        $myExcel->setActiveSheetIndex(0);
+        //name the worksheet
+        $myExcel->getActiveSheet()->setTitle('Actividades');
+
+        // load database
+        $this->load->database();
+
+        // load model
+
+		$mes=$datos['mes'];
+		$anio=$datos['anio'];
+		$id_personas=$datos['id_personas'];
+
+		if (isset($mes) ==false) {$mes=date('m'); }
+		if (isset($anio) ==false) {$anio=date('Y'); }
+		if (isset($id_personas) ==false) {$id_personas=0; }
+
+		$datos=$this->actividades->getDetallePersona($mes,$anio,$id_personas,true);
+		$salida=array();
+		$i=0;
+		foreach ($datos as $data) {
+			$salida[$i]['persona']=$data['persona'];
+			$salida[$i]['alumno']=$data['alumno'];
+			$salida[$i]['fecha']=date('d-m-Y',strtotime($data['fecha_inicio']));
+			$salida[$i]['hora_inicio']=date('H:i',strtotime($data['fecha_inicio']));
+			$salida[$i]['hora_fin']=date('H:i',strtotime($data['fecha_fin']));
+
+			$salida[$i]['tipo_actividades']=$data['tipo_actividades'];
+			$salida[$i]['observaciones']=$data['observaciones'];
+			$i++;
+
+		}
+
+		$header=array('Persona','Alumno','Fecha','Hora Inicio','Hora Fin','Actividad','Observaciones');
+
+ 		$myExcel->getActiveSheet()->fromArray($header,NULL,'A1');
+        // read data to active sheet
+        $myExcel->getActiveSheet()->fromArray($salida,null,'A2');
+		$myExcel->getActiveSheet()->getColumnDimension('A')->setAutoSize(true);
+        $myExcel->getActiveSheet()->getColumnDimension('B')->setAutoSize(true);
+		$myExcel->getActiveSheet()->getColumnDimension('C')->setAutoSize(true);
+        $myExcel->getActiveSheet()->getColumnDimension('D')->setAutoSize(true);
+		$myExcel->getActiveSheet()->getColumnDimension('E')->setAutoSize(true);
+		$myExcel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true);
+        $myExcel->getActiveSheet()->getColumnDimension('G')->setAutoSize(true);
+
+
+        $filename='actividadesdetalle'.$anio.$mes.'_'.$id_personas; //save our workbook as this file name
+        $writer = new Xlsx($myExcel); // instantiate Xlsx
+ 		if ($guarda=='no') {
+
+			header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'); // generate excel file
+			header('Content-Disposition: attachment;filename="'. $filename .'.xlsx"');
+			header('Cache-Control: max-age=0');
+
+			$writer->save('php://output');	// download file
+
+        //force user to download the Excel file without writing it to server's HD
+
+
+		}
+		else $writer->save($filename);
+		$myExcel->disconnectWorksheets();
+		unset($objWriter);
+		unset($myExcel);
+
+	}
+
+
+
+}

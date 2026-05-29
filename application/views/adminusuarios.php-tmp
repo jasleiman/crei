@@ -1,0 +1,135 @@
+<div class="ch-container">
+    <div class="row">
+
+        <!-- left menu starts -->
+        <div class="col-sm-2 col-lg-2">
+            <div class="sidebar-nav">
+                <div class="nav-canvas">
+                    <div class="nav-sm nav nav-stacked">
+                    </div>
+                    <ul class="nav nav-pills nav-stacked main-menu">
+                        <li class="nav-header"><?php echo $this->lang->line('mensajes_titulo_menus');?></li>
+<?php echo $menu;?>
+</ul>
+                </div>
+            </div>
+        </div>
+        <!--/span-->
+        <!-- left menu ends -->
+
+        <noscript>
+            <div class="alert alert-block col-md-12">
+                <h4 class="alert-heading">Warning!</h4>
+
+                <p>You need to have <a href="http://en.wikipedia.org/wiki/JavaScript" target="_blank">JavaScript</a>
+                    enabled to use this site.</p>
+            </div>
+        </noscript>
+
+        <div id="content" class="col-lg-10 col-sm-10">
+            <!-- content starts -->
+            <div>
+    <ul class="breadcrumb">
+        <li>
+            <a href="#">Inicio</a>
+        </li>
+    </ul>
+</div>
+<div class="ch-container">
+	<div class="row">
+        <div class="box col-md-12">
+			<div class="box-inner">
+				<div class="box-header well" data-original-title="">
+					<h2><i class="glyphicon glyphicon-user"></i> Administración de Usuarios</h2>
+						<div class="box-icon">
+							<a href="#" class="btn btn-setting btn-round btn-default"><i class="glyphicon glyphicon-cog"></i></a>
+							<a href="#" class="btn btn-minimize btn-round btn-default"><i class="glyphicon glyphicon-chevron-up"></i></a>
+							<a href="#" class="btn btn-close btn-round btn-default"><i class="glyphicon glyphicon-remove"></i></a>
+						</div>
+				</div>
+			<div class="box-content">
+				<div id="DataTables_Table_0_wrapper" class="dataTables_wrapper" role="grid">
+					<div class="row">
+						<div class="col-md-6">
+							<div id="DataTables_Table_0_length" class="dataTables_length">
+								<label>
+									<select size="1" name="DataTables_Table_0_length" aria-controls="DataTables_Table_0">
+										<option value="10" selected="selected">10</option>
+										<option value="25">25</option>
+										<option value="50">50</option>
+										<option value="100">100</option>
+									</select>
+								Filas por página
+								</label>
+							</div>
+						</div>
+							<div class="col-md-3">
+								<div class="dataTables_filter" id="DataTables_Table_0_filter">
+									<label>Buscar:
+										<input type="text" aria-controls="DataTables_Table_0">
+									</label>
+								</div>
+							</div>
+							<div class="col-md-3">
+								<a class="btn btn-success" href="altausuarios"><i class="glyphicon glyphicon-plus-sign icon-white"></i> Nuevo Usuario</a>
+							</div>
+					</div>
+						<div class="table-wrapper">
+							<div class="scrollable">
+								<table class="table table-striped table-bordered bootstrap-datatable datatable responsive dataTable" id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info">
+									<thead>
+										<tr role="row">
+										<th class="sorting_asc" role="columnheader" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Username: activate to sort column descending" style="width: 196px;">Nombre</th>
+										<th class="sorting" role="columnheader" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-label="Role: activate to sort column ascending" style="width: 88px;">Teléfono</th>
+										<th class="sorting" role="columnheader" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-label="Role: activate to sort column ascending" style="width: 88px;">Email</th>
+										<th class="sorting" role="columnheader" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-label="Status: activate to sort column ascending" style="width: 88px;">Dirección</th>
+										<th class="sorting" role="columnheader" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-label="Date registered: activate to sort column ascending" style="width: 165px;">Partido</th>
+										<th class="sorting" role="columnheader" tabindex="0" aria-controls="DataTables_Table_0" rowspan="1" colspan="1" aria-label="Actions: activate to sort column ascending" style="width: 286px;">Acciones</th>
+										</tr>
+									</thead>
+			<!impresión de la tabla !>
+
+<?php
+if (!isset($personas)) {
+	echo "<h2>Lo siento, no se puede mostrar su consulta</h2>";
+	exit();
+} else {
+	echo '<tbody role="alert" aria-live="polite" aria-relevant="all">';
+	$i = 1;
+	do {
+
+		foreach ($personas as $persona) {
+
+			if ($i%2 == 0) {
+				echo '<tr class="even">';
+			} else {
+				echo '<tr class="odd">';
+			}
+
+			echo '<td class=" sorting_1">'.$persona->nombre.'</td>';
+			echo '<td class="center ">'.$persona->telefono.'</td>';
+			echo '<td class="center ">'.$persona->email.'</td>';
+			echo '<td class="center ">'.$persona->direccion.'</td>';
+			echo '<td class="center ">'.$persona->localidad.'</td>';
+			echo '<td class="center ">
+										<a class="btn btn-success" href="#">
+										<i class="glyphicon glyphicon-zoom-in icon-white"></i>
+										Info
+										</a>
+										<a class="btn btn-info" href="#">
+										<i class="glyphicon glyphicon-edit icon-white"></i>
+										Editar
+										</a>
+										<a class="btn btn-danger" href="#">
+										<i class="glyphicon glyphicon-trash icon-white"></i>
+										Eliminar
+										</a>
+										</td>
+										</tr>';
+		}
+		$i++;
+	} while ($i <= 2);
+}
+
+?>
+</tr></tbody></table></div><div class="pinned"><table class="table table-striped table-bordered bootstrap-datatable datatable dataTable" id="DataTables_Table_0" aria-describedby="DataTables_Table_0_info">

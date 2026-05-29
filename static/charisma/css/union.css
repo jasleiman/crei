@@ -1,0 +1,121 @@
+@charset "utf-8";
+/* CSS Document */
+
+body {
+font-family:'Roboto Condensed', sans-serif;
+font-size: 14px;
+line-height: 1.42857143;
+color: #555555;
+background-color: #ffffff;
+}
+
+.navbar {
+	background-image: url(../img/bg_header.png);
+}
+.navbar-inner, .encabezado {
+
+	display: block;
+	height: 140px;
+	background-color:#222629;
+}
+.logo-empresa{
+	margin:0px 0 0 30px;
+	width:120px;
+}
+
+.navbar-inner .btn-group {
+margin: 59px 5px 0 5px;
+}
+
+.navbar-toggle {
+	margin-top:59px;
+}
+.navbar-inner .btn-group .pull-right {
+margin: -50px 5px 0 5px;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+font-family:'Roboto Condensed', sans-serif;
+font-weight: 500;
+line-height: 1.1;
+color: #317eac;
+}
+
+.nic {
+	width:auto;
+	}
+.tabs-detalle {
+	margin-left:5%;
+	width:90%;
+}
+@media (max-width:767px){
+.logo-escondido{
+	margin:35px 0 0 30px;
+	border:none;
+	background-color:none;
+}
+
+.header-escondido {
+	
+	//height: 100px;
+	border:none;
+	background:none;
+	float:left;
+}
+.header-escondido:hover {
+	background:none;
+}
+
+.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+	background:none;
+}
+.navbar-inner .btn-group {
+	margin: 0 5px 0 0;
+}
+.navbar-toggle {
+	margin-top:10px;
+}
+
+.menu-celular {
+	margin-top: 60px;
+}
+}
+@media (min-width:768px){
+.header-escondido {
+	display: none;
+
+}
+}
+
+@media (max-width:400px){
+.logo-escondido{
+	margin:0px 0 0 30px;
+	border:none;
+	background-color:none;
+	max-width:150px;
+}
+}
+
+.fuente-grande > .form-control {
+	font-size: 18px;
+}
+
+.chosen-container-single .chosen-single {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    padding: 0px 0px 0px 8px;
+    border: 1px solid #AAA;
+    border-radius: 5px;
+    background: transparent -moz-linear-gradient(center top , #FFF 20%, #F6F6F6 50%, #EEE 52%, #F4F4F4 100%) repeat scroll 0% 0% padding-box;
+    box-shadow: 0px 0px 3px #FFF inset, 0px 1px 1px rgba(0, 0, 0, 0.1);
+    color: #444;
+    text-decoration: none;
+    white-space: nowrap;
+    line-height: 24px;
+    height: 46px;
+    font-size:18px;
+    vertical-align:center;
+}
+
+.datepicker{z-index:100000 !important;}
