@@ -9,13 +9,21 @@ class Alcance extends CI_Model {
 
 	const PERFIL_ADMINISTRADOR = 1;
 	const PERFIL_EQUIPO = 3;
+	const PERFIL_APOYO_MAESTRA = 4;
 	const PROF_COORDINADOR = 1;
 	const PROF_MAESTRA = 2;
+	/** Tipo organigrama MAESTRA DE APOYO (profesionales.id_profesionales = 15 en datos actuales). */
+	const PROF_MAESTRA_APOYO = 15;
+	/** Clase profesional Maestra de apoyo (clases_profesionales.id = 3). */
+	const CLASE_PROFESIONAL_APOYO = 3;
 	/** Clase profesional Equipo: psicopedagoga, directivo, fonoaudiólogo, etc. */
 	const CLASE_PROFESIONAL_EQUIPO = 2;
 
 	/** @var int[]|null */
 	protected $_cache_ids_profesionales_clase_equipo = null;
+
+	/** @var bool|null */
+	protected $_cache_es_maestra_apoyo = null;
 
 	protected $session_data = array();
 
@@ -59,6 +67,54 @@ class Alcance extends CI_Model {
 
 	public function es_coordinador() {
 		return $this->id_profesionales_sesion() === self::PROF_COORDINADOR;
+	}
+
+	/** Usuario con tipo profesional Maestra de apoyo (clase 3). */
+	public function es_maestra_apoyo() {
+		if ($this->_cache_es_maestra_apoyo !== null) {
+			return $this->_cache_es_maestra_apoyo;
+		}
+		$id = $this->id_profesionales_sesion();
+		if ($id === self::PROF_MAESTRA_APOYO) {
+			$this->_cache_es_maestra_apoyo = true;
+			return true;
+		}
+		$this->_cache_es_maestra_apoyo = $this->id_clase_profesional($id) === self::CLASE_PROFESIONAL_APOYO;
+		return $this->_cache_es_maestra_apoyo;
+	}
+
+	/** Perfil de menú «Apoyo + Maestra» (carga horas normal, no equipo). */
+	public function es_perfil_apoyo_maestra() {
+		return isset($this->session_data['id_perfiles'])
+			&& (int) $this->session_data['id_perfiles'] === self::PERFIL_APOYO_MAESTRA;
+	}
+
+	/** Solo perfil Equipo usa la pantalla de carga grupal (ateneo). */
+	public function usa_carga_horas_equipo() {
+		return isset($this->session_data['id_perfiles'])
+			&& (int) $this->session_data['id_perfiles'] === self::PERFIL_EQUIPO;
+	}
+
+	/** Ve todos los alumnos activos (admin, equipo o maestra de apoyo). */
+	public function ve_todos_los_alumnos() {
+		return $this->ve_todo() || $this->es_maestra_apoyo();
+	}
+
+	protected function id_clase_profesional($id_profesionales) {
+		$id_profesionales = (int) $id_profesionales;
+		if ($id_profesionales <= 0) {
+			return 0;
+		}
+		$this->db->reset_query();
+		$this->db->select('id_clases_profesionales');
+		$this->db->from('profesionales');
+		$this->db->where('id_profesionales', $id_profesionales);
+		$this->db->limit(1);
+		$query = $this->db->get();
+		if ($query->num_rows() === 0) {
+			return 0;
+		}
+		return (int) $query->row()->id_clases_profesionales;
 	}
 
 	/**
@@ -126,6 +182,9 @@ class Alcance extends CI_Model {
 	 * Aplica filtro de alumnos por maestra integradora asignada.
 	 */
 	public function aplicar_filtro_alumnos($alias = 'alumnos') {
+		if ($this->ve_todos_los_alumnos()) {
+			return;
+		}
 		$ids = $this->ids_maestras_visibles();
 		if ($ids === null) {
 			return;
@@ -139,6 +198,9 @@ class Alcance extends CI_Model {
 	}
 
 	public function puede_ver_maestra($id_maestra) {
+		if ($this->ve_todo() || $this->es_maestra_apoyo()) {
+			return true;
+		}
 		$ids = $this->ids_maestras_visibles();
 		if ($ids === null) {
 			return true;
@@ -167,8 +229,11 @@ class Alcance extends CI_Model {
 	}
 
 	public function puede_ver_alumno($id_alumnos) {
-		if ($this->ve_todo()) {
-			return true;
+		if ($this->ve_todos_los_alumnos()) {
+			$this->db->from('alumnos');
+			$this->db->where('id_alumnos', (int) $id_alumnos);
+			$this->db->where('habilitado', 1);
+			return (int) $this->db->count_all_results() > 0;
 		}
 		$this->db->select('id_personas');
 		$this->db->from('alumnos');

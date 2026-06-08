@@ -125,7 +125,8 @@
         </div>
 		<formspan class='error'></formspan>
         <div class="clearfix"></div><br>
-        <label class="control-label" for="id_personas">Maestra</label>
+        <?php if (empty($es_maestra_apoyo)) : ?>
+        <label class="control-label" for="id_personas">Maestra integradora (filtrar alumnos)</label>
         <div class="input-group input-group-lg">
         <span class="input-group-addon"><i class="glyphicon glyphicon-user green"></i></span>
             <?php
@@ -137,11 +138,16 @@
 	                $options[$persona->id_personas]=$persona->nombre;
 
                 }
-				//echo form_input( $data );
 				echo form_dropdown('id_personas',$options,$id_personas,'class="form-control" data-rel="chosen" id="id_personas"')?>
         </div>
         <formspan class='error'></formspan>
         <div class="clearfix"></div><br>
+        <?php else :
+			$sess = $this->session->userdata('logged_in');
+			$hidden_id_personas = ($id_personas !== '') ? $id_personas : (isset($sess['id_personas']) ? $sess['id_personas'] : '');
+		?>
+        <?php echo form_hidden('id_personas', $hidden_id_personas); ?>
+        <?php endif; ?>
 		<label class="control-label" for="id_alumnos">Alumno</label>
         <div class="input-group input-group-lg">
         <span class="input-group-addon"><i class="glyphicon glyphicon-user green"></i></span>
@@ -149,10 +155,12 @@
             <?php
 
 				$options = array();
+                if (!empty($alumnos) && is_array($alumnos)) {
                 foreach ($alumnos as $alumno)
                 {
 	                $options[$alumno->id_alumnos]=$alumno->nombre;
 
+                }
                 }
 				//echo form_input( $data );
 				echo form_dropdown('id_alumnos',$options,$id_alumnos,'class="form-control" data-rel="chosen" id="id_alumnos"')?>

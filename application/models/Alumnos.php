@@ -8,6 +8,7 @@ class Alumnos extends CI_Model {
     function get($id = 0) {
 		$this -> load -> model('Datos', 'datos');
 		$this -> load -> model('Alcance', 'alcance');
+		$this->alcance->ve_todos_los_alumnos();
 		$this -> db -> reset_query();
 		$this -> db -> WHERE('alumnos.habilitado', 1);
 		if ($id > 0) {
@@ -29,12 +30,14 @@ class Alumnos extends CI_Model {
 	
 	function getDesdePersona($id = 0) {
 		$this -> load -> model('Alcance', 'alcance');
-		$this -> db -> reset_query();
-		$this -> db -> WHERE('alumnos.habilitado', 1);
 		if ($id > 0) {
 			if (!$this -> alcance -> puede_ver_maestra($id)) {
 				return false;
 			}
+		}
+		$this -> db -> reset_query();
+		$this -> db -> WHERE('alumnos.habilitado', 1);
+		if ($id > 0) {
 			$this -> db -> WHERE('alumnos.id_personas', (int) $id);
 		} else {
 			$this -> alcance -> aplicar_filtro_alumnos('alumnos');
@@ -55,6 +58,7 @@ class Alumnos extends CI_Model {
 	
 	function getHabilitados($id = 0) {
 		$this -> load -> model('Alcance', 'alcance');
+		$this->alcance->ve_todos_los_alumnos();
 		$this -> db -> reset_query();
 		$this -> db -> WHERE('alumnos.habilitado', 1);
 		$this -> alcance -> aplicar_filtro_alumnos('alumnos');

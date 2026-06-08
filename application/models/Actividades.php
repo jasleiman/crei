@@ -54,7 +54,11 @@ class Actividades extends CI_Model {
         if (!empty($datos['id_personas'])) {
             $id_carga = (int) $datos['id_personas'];
             $id_sesion = $this->alcance->id_personas_sesion();
-            if ($id_carga !== $id_sesion && !$this->alcance->puede_ver_maestra($id_carga)) {
+            if ($this->alcance->es_maestra_apoyo()) {
+                if ($id_carga !== $id_sesion) {
+                    return false;
+                }
+            } elseif ($id_carga !== $id_sesion && !$this->alcance->puede_ver_maestra($id_carga)) {
                 return false;
             }
         }

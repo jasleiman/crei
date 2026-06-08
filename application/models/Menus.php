@@ -92,11 +92,13 @@ Class Menus extends CI_Model {
                 $session_data = $this -> session -> userdata('logged_in');
 		foreach ($varmenu2 as $elem) {
                     /**
-                     * Este codigo feo lo coloque para que los usuarios que tienen
-                     * el id_perfiles = 3 no le muestro el menu cargar horas
-                     * porque originalmente no lo tenían. Tambien agregue la linea 92
+                     * Equipo: no muestra «Cargar horas» individual (usa carga de equipo).
+                     * Apoyo + Maestra: no muestra «Cargar horas equipo».
                      */
-                    if($session_data['id_perfiles'] === '3' && $elem->id_menus ==='1'){
+                    if ((int) $session_data['id_perfiles'] === 3 && (int) $elem->id_menus === 1) {
+                        continue;
+                    }
+                    if ((int) $session_data['id_perfiles'] === 4 && (int) $elem->id_menus === 43) {
                         continue;
                     }
 			$hijos = $this -> cargarHijos($id, $elem -> id_menus);

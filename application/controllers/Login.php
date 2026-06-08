@@ -39,9 +39,10 @@ class Login extends CI_Controller {
 		} else {
 			//Go to private area
 			$session_data = $this -> session -> userdata('logged_in');
-			if ($session_data['id_perfiles']==3 or $session_data['id_perfiles']==4) 
-			redirect('principal/cargarateneo', 'refresh');
-			else
+			$this->load->model('alcance', '', TRUE);
+			if ($this->alcance->usa_carga_horas_equipo()) {
+				redirect('principal/cargarateneo', 'refresh');
+			}
 			redirect('principal', 'refresh');
 		}
 

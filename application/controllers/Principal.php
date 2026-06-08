@@ -15,6 +15,7 @@ class Principal extends CI_Controller {
         $this->load->model('personas', '', TRUE);
         $this->load->model('alumnos', '', TRUE);
         $this->load->model('horas', '', TRUE);
+        $this->load->model('alcance', '', TRUE);
     }
 
     function index() {
@@ -44,6 +45,7 @@ class Principal extends CI_Controller {
                 if (!$data['personas']) {
                     $data['personas'] = array();
                 }
+                $data['es_maestra_apoyo'] = $this->alcance->es_maestra_apoyo();
 
                 if ($this->input->get('id_actividades') == true) {
                     $id_actividades = $this->input->get('id_actividades');
@@ -62,12 +64,18 @@ class Principal extends CI_Controller {
                         $data['alumnos'] = [(object)$datosAlumnoActivida];
                     }
                 } else {
-                    if (empty($data['personas']) || !isset($data['personas'][0]->id_personas)) {
+                    if ($data['es_maestra_apoyo']) {
+                        $data['alumnos'] = $this->alumnos->getHabilitados();
+                        if ($data['alumnos'] === false) {
+                            $data['alumnos'] = array();
+                        }
+                    } elseif (empty($data['personas']) || !isset($data['personas'][0]->id_personas)) {
                         $id_personas_filtro = $id_personas;
+                        $data['alumnos'] = $this->alumnos->getDesdePersona($id_personas_filtro);
                     } else {
                         $id_personas_filtro = $data['personas'][0]->id_personas;
+                        $data['alumnos'] = $this->alumnos->getDesdePersona($id_personas_filtro);
                     }
-                    $data['alumnos'] = $this->alumnos->getDesdePersona($id_personas_filtro);
                 }
                 $this->load->view('header');
                 $this->load->view('menusuperior');
@@ -92,7 +100,12 @@ class Principal extends CI_Controller {
             $session_data = $this->session->userdata('logged_in');
             $data['username'] = $session_data['username'];
 
-            $resultado = $this->actividades->cargaActividades($this->input->post());
+            $post = $this->input->post();
+            if ($this->alcance->es_maestra_apoyo()) {
+                $post['id_personas'] = (int) $session_data['id_personas'];
+            }
+
+            $resultado = $this->actividades->cargaActividades($post);
             if ($resultado) {
                 $msg = "Tu carga ha sido exitosa. Muchas gracias!";
                 $type = "success";
@@ -113,7 +126,10 @@ class Principal extends CI_Controller {
     function cargarAteneo() {
         $session_data = $this->session->userdata('logged_in');
         $funcion = strtolower(__CLASS__) . '/' . __FUNCTION__;
-        if ($this->session->userdata('logged_in') and $this->menus->estaHabilitado($funcion, $session_data['id'])) {
+        if (!$this->session->userdata('logged_in') || !$this->alcance->usa_carga_horas_equipo()
+            || !$this->menus->estaHabilitado($funcion, $session_data['id'])) {
+            redirect('login', 'refresh');
+        }
 
             $session_data = $this->session->userdata('logged_in');
             $data['username'] = $session_data['username'];
@@ -153,10 +169,6 @@ class Principal extends CI_Controller {
                 $this->load->view('cargarhorasateneo', $data);
                 $this->load->view('footer');
             }
-        } else {
-            //If no session, redirect to login page
-            redirect('login', 'refresh');
-        }
     }
 
     function grabarAteneo() {

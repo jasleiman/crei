@@ -4,6 +4,11 @@ class Horas extends CI_Model {
 	function get($id=0,$mes=0,$anio=0) {
 		$this -> load -> model('Alcance', 'alcance');
 
+		$es_maestra_apoyo = $this->alcance->es_maestra_apoyo();
+		$id_personas_sesion = $this->alcance->id_personas_sesion();
+		$ids_maestras = $this->alcance->ids_maestras_visibles();
+
+		$this->db->reset_query();
 		if ($mes > 0 and $anio > 0 ) {
 			$fecha_inicio = $anio.'-'.$mes.'-'.'1';
 			$fecha_fin = date('Y-m-t',strtotime($fecha_inicio));
@@ -13,14 +18,15 @@ class Horas extends CI_Model {
 		}
 			$this -> db -> WHERE('alumnos.habilitado',  '1');
 			$this -> db -> WHERE('actividades.habilitado',  '1');
-			$ids_maestras = $this -> alcance -> ids_maestras_visibles();
-			if ($ids_maestras !== null) {
+			if ($es_maestra_apoyo) {
+				$this->db->where('actividades.id_personas', $id_personas_sesion);
+			} elseif ($ids_maestras !== null) {
 				if (empty($ids_maestras)) {
-					$this -> db -> where('alumnos.id_personas', 0);
-					$this -> db -> where('actividades.id_personas', 0);
+					$this->db->where('alumnos.id_personas', 0);
+					$this->db->where('actividades.id_personas', 0);
 				} else {
-					$this -> db -> where_in('alumnos.id_personas', $ids_maestras);
-					$this -> db -> where_in('actividades.id_personas', $ids_maestras);
+					$this->db->where_in('alumnos.id_personas', $ids_maestras);
+					$this->db->where_in('actividades.id_personas', $ids_maestras);
 				}
 			}
 			$this -> db -> select('id_actividades, tipo_actividades.id_tipo_actividades,tipo_actividades.descripcion,fecha_inicio,fecha_fin,alumnos.id_alumnos,alumnos.nombre as alumno,observaciones,actividades.habilitado,actividades.id_personas');
