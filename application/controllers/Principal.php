@@ -126,7 +126,7 @@ class Principal extends CI_Controller {
     function cargarAteneo() {
         $session_data = $this->session->userdata('logged_in');
         $funcion = strtolower(__CLASS__) . '/' . __FUNCTION__;
-        if (!$this->session->userdata('logged_in') || !$this->alcance->usa_carga_horas_equipo()
+        if (!$this->session->userdata('logged_in') || !$this->alcance->puede_acceder_carga_horas_equipo()
             || !$this->menus->estaHabilitado($funcion, $session_data['id'])) {
             redirect('login', 'refresh');
         }
@@ -179,7 +179,7 @@ class Principal extends CI_Controller {
         $this->load->library('user_agent');
         $session_data = $this->session->userdata('logged_in');
         $funcion_carga = strtolower(__CLASS__) . '/cargarateneo';
-        if (!$this->session->userdata('logged_in') || !$this->alcance->usa_carga_horas_equipo()
+        if (!$this->session->userdata('logged_in') || !$this->alcance->puede_acceder_carga_horas_equipo()
             || !$this->menus->estaHabilitado($funcion_carga, $session_data['id'])) {
             redirect('login', 'refresh');
         }

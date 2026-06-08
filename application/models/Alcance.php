@@ -89,10 +89,15 @@ class Alcance extends CI_Model {
 			&& (int) $this->session_data['id_perfiles'] === self::PERFIL_APOYO_MAESTRA;
 	}
 
-	/** Solo perfil Equipo usa la pantalla de carga grupal (ateneo). */
+	/** Solo perfil Equipo usa la pantalla de carga grupal (ateneo) como pantalla inicial al ingresar. */
 	public function usa_carga_horas_equipo() {
 		return isset($this->session_data['id_perfiles'])
 			&& (int) $this->session_data['id_perfiles'] === self::PERFIL_EQUIPO;
+	}
+
+	/** Puede abrir y guardar carga grupal (ateneo): administrador y equipo. */
+	public function puede_acceder_carga_horas_equipo() {
+		return $this->ve_todo();
 	}
 
 	/** Ve todos los alumnos activos (admin, equipo o maestra de apoyo). */
