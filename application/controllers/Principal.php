@@ -178,20 +178,15 @@ class Principal extends CI_Controller {
         $this->load->helper('language');
         $this->load->library('user_agent');
         $session_data = $this->session->userdata('logged_in');
-        $funcion = strtolower(__CLASS__) . '/' . __FUNCTION__;
-        if ($this->session->userdata('logged_in') and $this->menus->estaHabilitado($funcion, $session_data['id'])) {
-            $this->load->model('alcance', '', TRUE);
+        $funcion_carga = strtolower(__CLASS__) . '/cargarateneo';
+        if (!$this->session->userdata('logged_in') || !$this->alcance->usa_carga_horas_equipo()
+            || !$this->menus->estaHabilitado($funcion_carga, $session_data['id'])) {
+            redirect('login', 'refresh');
+        }
+
             $session_data = $this->session->userdata('logged_in');
             $id_personas_carga = (int) $session_data['id_personas'];
             if ($id_personas_carga <= 0) {
-                redirect('principal/cargarateneo', 'refresh');
-            }
-
-            $id_maestra_filtro = (int) $this->input->post('id_maestra_filtro');
-            if ($id_maestra_filtro <= 0) {
-                $id_maestra_filtro = (int) $this->input->post('id_personas');
-            }
-            if ($id_maestra_filtro > 0 && !$this->alcance->puede_ver_maestra($id_maestra_filtro)) {
                 redirect('principal/cargarateneo', 'refresh');
             }
 
@@ -225,18 +220,7 @@ class Principal extends CI_Controller {
                 if ($id_alumnos <= 0) {
                     continue;
                 }
-                if ($id_maestra_filtro > 0) {
-                    $this->db->select('id_personas');
-                    $this->db->from('alumnos');
-                    $this->db->where('id_alumnos', $id_alumnos);
-                    $this->db->where('habilitado', 1);
-                    $this->db->limit(1);
-                    $alumno = $this->db->get()->row();
-                    if (!$alumno || (int) $alumno->id_personas !== $id_maestra_filtro) {
-                        $rechazadas++;
-                        continue;
-                    }
-                } elseif (!$this->alcance->puede_ver_alumno($id_alumnos)) {
+                if (!$this->alcance->puede_ver_alumno($id_alumnos)) {
                     $rechazadas++;
                     continue;
                 }
@@ -264,9 +248,6 @@ class Principal extends CI_Controller {
             $mensaje = '{&quot;text&quot;:&quot;' . str_replace('"', "'", $msg) . '&quot;,&quot;layout&quot;:&quot;top&quot;,&quot;type&quot;:&quot;' . $type . '&quot;}';
             $this->session->set_flashdata('mensaje', $mensaje);
             redirect('principal/cargarateneo', 'refresh');
-        } else {
-            redirect('login', 'refresh');
-        }
     }
 
     protected function _flash_grabar_ateneo($texto, $type) {

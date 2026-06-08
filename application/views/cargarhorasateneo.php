@@ -99,7 +99,7 @@
         <span class="input-group-addon"><i class="glyphicon glyphicon-user green"></i></span>
             <?php 
 				
-				$options = array();
+				$options = array('' => '— Seleccione maestra (opcional) —');
                 if (!empty($personas)) {
                 foreach ($personas as $persona)
                 {
